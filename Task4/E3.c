@@ -6,13 +6,13 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 #include <gsl/gsl_rng.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <time.h>
 
-int main()
-{
+int main(){
+  printf("aslffa\n");
+  
   // Declarations
   double u;
 	const gsl_rng_type *T;
@@ -25,25 +25,33 @@ int main()
 	T = gsl_rng_default;
 	q = gsl_rng_alloc(T);
 	gsl_rng_set(q,time(NULL));
-  nbr_of_lines = 1e6; /* The number of lines in MC.txt. */
+  nbr_of_lines = 1e6; // The number of lines in MC.txt.
   double *data = malloc((nbr_of_lines) * sizeof (double));
 
 	// generate uniform random number
 	u = gsl_rng_uniform(q);
 
-  /* Read data from file. */
+  printf("aslffa\n");
+   
+  // Read data from file.
   in_file = fopen("MC.txt","r");
   for (int i=0; i<nbr_of_lines; i++) {
     fscanf(in_file,"%lf",&data[i]);
   }
   fclose(in_file);
 
+  int s;
+  int k=1000;
+  s = auto_corr_fun(data,nbr_of_lines, k);
+  printf("s is:%d\n", s);
+
   gsl_rng_free(q);
+
+  return 0;
 }
 
 
-void auto_corr_fun(double* data, int nbr_of_lines){
-  int k = 1000;
+int auto_corr_fun(double* data, int nbr_of_lines, int k){
   double mean_ik_i[k];
   double phi_k[k];
   double mean_i2, mean_i;
@@ -58,5 +66,8 @@ void auto_corr_fun(double* data, int nbr_of_lines){
   }
   for (int i=0; i<k; i++){
     phi_k[k] = (mean_ik_i[k] - mean_i*mean_i) / (mean_i2-mean_i*mean_i);
+    if(abs(phi_k[k]-0.135)< 0.001){
+      return k;
+    }
   }
 }
