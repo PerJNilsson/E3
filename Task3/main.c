@@ -2,13 +2,13 @@
 #include <stdlib.h>
 #include <time.h>
 #include <math.h>
+#include <gsl/gsl_rng.h>
 #define M_PI 3.14159265358979323846
 
 
 double trial_change (double x_m, double r);
 double weightfunction(double x, double y, double z);
 double integral_function(double x, double y, double z);
-//double abs(double x);
 int main() {
   int nbr_of_simulations = 8;
   int N[nbr_of_simulations];
@@ -16,11 +16,22 @@ int main() {
   double I_value;
   double variance;
   double value_of_integral;
-  double error;
-  double px, gx;
   double I;
-  double w2, w1, q;
+  double w2, w1;
   long count;
+
+  // GSL INITIALIZATION
+  double u;
+	const gsl_rng_type *T;
+	gsl_rng *q;
+  // Initializations
+  gsl_rng_env_setup();
+	T = gsl_rng_default;
+	q = gsl_rng_alloc(T);
+	gsl_rng_set(q,time(NULL));
+
+  // generate uniform random number
+	u = gsl_rng_uniform(q);
 
   for (int i=0; i<nbr_of_simulations; i++){
     N[i]= pow(10, i+1);
@@ -31,21 +42,26 @@ int main() {
     I_value=0;
     variance=0;
     count = 0;
-    x1=0.1; y1=-0.1; z1=0.5;
+    x1=0.8*u; y1=-0.3*u; z1=0.5*u;
     w1=0; w2=0;
     for (int j=0; j<N[i]; j++){
-      random_value = (double) rand() / (double) RAND_MAX;
+      //random_value = (double) rand() / (double) RAND_MAX;
+      random_value = gsl_rng_uniform(q);
       x2 = trial_change(x1, random_value);
-      random_value = (double) rand() / (double) RAND_MAX;
+
+      //random_value = (double) rand() / (double) RAND_MAX;
+      random_value = gsl_rng_uniform(q);
       y2 = trial_change(y1, random_value);
-      random_value = (double) rand() / (double) RAND_MAX;
+
+      //random_value = (double) rand() / (double) RAND_MAX;
+      random_value = gsl_rng_uniform(q);
       z2 = trial_change(z1, random_value);
 
       w1 = weightfunction(x1,y1,z1);
       w2 = weightfunction(x2,y2,z2);
 
-      random_value = (double) rand() / (double) RAND_MAX;
-
+      //random_value = (double) rand() / (double) RAND_MAX;
+      random_value = gsl_rng_uniform(q); 
       if (random_value > w2/w1) {
         x2=x1; y2=y1; z2=z1;
         count+=1;
@@ -54,15 +70,13 @@ int main() {
 
       I = integral_function(x1,y1,z1);
       I_value += I;
-      //variance += I*I;
     }
     I_value = I_value / (double)(N[i]);
-    variance = 0;//variance / (double) N[i] - mean_value*mean_value;
+    variance = sqrt(I_value)/ (double) N[i];
 
 
-    value_of_integral = I_value;//mean_value + sqrt(variance/((double)N[i]));
-    error = 0; //sqrt((value_of_integral-(1.0/6.0))*(value_of_integral-(1.0/6.0)))/(1.0/6.0);
-    printf("N=%09d | I=%f | error=%f | variance=%f | new states: %f\n",N[i], value_of_integral, error, variance,1.0-(double)count/(double)N[i]);
+    value_of_integral = I_value;
+    printf("N=%09d | I=%f | variance=%f | new states: %f\n",N[i], value_of_integral, variance,1.0-(double)count/(double)N[i]);
   }
   return 0;
 }
@@ -74,7 +88,6 @@ double trial_change (double x_m, double r) {
 }
 
 double weightfunction(double x, double y, double z){
-
   return (1.0/sqrt(M_PI*M_PI*M_PI))*exp(-(x*x+y*y+z*z));
 }
 
@@ -82,22 +95,3 @@ double integral_function(double x, double y, double z){
   return (x*x+x*x*y*y+x*x*y*y*z*z);
 }
 
-
-
-
-/* EARLIER SHIT CODE
-
-   random_value = (double) rand() / (double) RAND_M;
-   px = acos(1-2*random_value)/M_PI;
-
-   mean_value += px*(1.0-px)/sin(M_PI*px)*2/M_PI; // 2/pi to have int of px equal to one
-   variance += (px*(1.0-px))*(px*(1.0-px))/sin(M_PI*px)/sin(M_PI*px)*4/M_PI/M_PI;
-   }
-   mean_value = mean_value / (double)(N[i]);
-   variance = variance / (double) N[i] - mean_value*mean_value;
-
-   value_of_integral = mean_value + sqrt(variance/((double)N[i]));
-   error = sqrt((value_of_integral-(1.0/6.0))*(value_of_integral-(1.0/6.0)))/(1.0/6.0);
-   printf("N=%08d | I=%f | error=%f | variance=%f\n",N[i], value_of_integral, error, variance);
-
-*/

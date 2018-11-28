@@ -1,7 +1,7 @@
 
 CC = gcc
 CFLAGS = -O3 -Wall
-LIBS = -lm
+LIBS = -lm -lgsl -lgslcblas
 
 HEADERS = #initfcc.h alpotential.h
 OBJECTS = #initfcc.o alpotential.o MD_main.o
@@ -19,7 +19,7 @@ clean:
 	rm -f *.o; rm -rf main;
 	touch *.c
 
-plot :
-	@./main;# python plot_energies.py
+go :
+	@./main;
 
 
