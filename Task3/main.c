@@ -19,6 +19,7 @@ int main() {
   double I;
   double w2, w1;
   long count;
+  int init_phase = 10000;
 
   // GSL INITIALIZATION
   double u;
@@ -44,6 +45,32 @@ int main() {
     count = 0;
     x1=0.8*u; y1=-0.3*u; z1=0.5*u;
     w1=0; w2=0;
+    // Initialization phase
+    for (int j=0; j<init_phase; j++){
+      //random_value = (double) rand() / (double) RAND_MAX;
+      random_value = gsl_rng_uniform(q);
+      x2 = trial_change(x1, random_value);
+
+      //random_value = (double) rand() / (double) RAND_MAX;
+      random_value = gsl_rng_uniform(q);
+      y2 = trial_change(y1, random_value);
+
+      //random_value = (double) rand() / (double) RAND_MAX;
+      random_value = gsl_rng_uniform(q);
+      z2 = trial_change(z1, random_value);
+
+      w1 = weightfunction(x1,y1,z1);
+      w2 = weightfunction(x2,y2,z2);
+
+      //random_value = (double) rand() / (double) RAND_MAX;
+      random_value = gsl_rng_uniform(q); 
+      if (random_value > w2/w1) {
+        x2=x1; y2=y1; z2=z1;
+      }
+      x1=x2; y1=y2; z1=z2;
+    }
+
+
     for (int j=0; j<N[i]; j++){
       //random_value = (double) rand() / (double) RAND_MAX;
       random_value = gsl_rng_uniform(q);

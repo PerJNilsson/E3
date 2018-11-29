@@ -10,64 +10,139 @@
 #include <gsl/gsl_rng.h>
 #include <time.h>
 
+int auto_corr_fun(double * N, int nbr_of_lines, int k);
+void center_data(double* N, int nbr_of_lines);
+double block_average(double* data, int nbr_of_lines, int B);
+
 int main(){
-  printf("aslffa\n");
-  
+
   // Declarations
-  double u;
-	const gsl_rng_type *T;
-	gsl_rng *q;
   int nbr_of_lines;
   FILE *in_file;
+  FILE * values_block;
 
   // Initializations
-  gsl_rng_env_setup();
-	T = gsl_rng_default;
-	q = gsl_rng_alloc(T);
-	gsl_rng_set(q,time(NULL));
-  nbr_of_lines = 1e6; // The number of lines in MC.txt.
+  nbr_of_lines = 1E6; // The number of lines in MC.txt.
   double *data = malloc((nbr_of_lines) * sizeof (double));
 
-	// generate uniform random number
-	u = gsl_rng_uniform(q);
-
-  printf("aslffa\n");
-   
   // Read data from file.
   in_file = fopen("MC.txt","r");
   for (int i=0; i<nbr_of_lines; i++) {
-    fscanf(in_file,"%lf",&data[i]);
+    double tmpData;
+    fscanf(in_file,"%lf",&tmpData);
+    data[i] = tmpData;
   }
   fclose(in_file);
 
-  int s;
-  int k=1000;
-  s = auto_corr_fun(data,nbr_of_lines, k);
-  printf("s is:%d\n", s);
+  int s_corr;
+  int k= 400;
+  int B;
+  int step = 10;
+  int start = 1; int end = 20000/step;
+  int length_array = end;
+  double s_block[length_array];
 
-  gsl_rng_free(q);
+  for (int i=0; i<length_array; i++){
+    s_block[i] = 0.0;
+  }
+  center_data(data, nbr_of_lines);
+  values_block = fopen("block_value.dat", "w");
+
+  for (B = 1; B<end; B++){
+    s_block[B-1] = block_average(data, nbr_of_lines, B*10);
+    fprintf(values_block, "%d \t %f\n", B*10, s_block[B-1]);
+  }
+  fclose(values_block);
+
+  double s_block_avg_avg = 0;
+  for (int i=1000; i<length_array; i++){
+    s_block_avg_avg += s_block[i] / (double)(length_array-1000);
+  }
+
+  s_corr = auto_corr_fun(data,nbr_of_lines, k);
+  printf("s from autocorrelation function is:%d\n", s_corr);
+
+  printf("s from block average function is:%f\n", s_block_avg_avg);
 
   return 0;
 }
 
 
 int auto_corr_fun(double* data, int nbr_of_lines, int k){
-  double mean_ik_i[k];
-  double phi_k[k];
-  double mean_i2, mean_i;
-  for (int i=0; i<nbr_of_lines-k; i++){
-    for (int j=0; j<k; j++){
-      mean_ik_i[k] += data[i]*data[i+k]/(nbr_of_lines-k);
+  double mean_ik[k];
+  double phi[k];
+  int good_guess=0;
+  double s = exp(-2.0);
+  for (int i=0; i<k; i++){
+    mean_ik[i]=0;
+    phi[i]=0;
+  }
+  double mean_squared = 0;
+  //double mean_i = 0;
+  FILE * valuessave;
+  for (int i = 0; i<k; i++) {
+    for (int j=0; j<nbr_of_lines-i; j++){
+      mean_ik[i] += data[j]*data[i+j]/(double)(nbr_of_lines-i);
     }
   }
   for (int i=0; i<nbr_of_lines; i++){
-    mean_i2 += data[i]*data[i]/nbr_of_lines;
-    mean_i += data[i]/nbr_of_lines;
+    mean_squared += data[i]*data[i]/(double) nbr_of_lines;
   }
+  valuessave = fopen("values.dat", "w");
   for (int i=0; i<k; i++){
-    phi_k[k] = (mean_ik_i[k] - mean_i*mean_i) / (mean_i2-mean_i*mean_i);
-    if(abs(phi_k[k]-0.135)< 0.001){
-      return k;
+    phi[i] = (mean_ik[i]) / (mean_squared);
+    fprintf(valuessave, "%d \t %f\n", i, phi[i]);
+    if(sqrt((phi[good_guess]-s)*(phi[good_guess]-s))> sqrt((phi[i]-s)*(phi[i]-s))){
+      good_guess = i;
     }
   }
+  fclose(valuessave);
+  return good_guess;
+}
+
+double block_average(double* data, int nbr_of_lines, int B){
+  double good_guess_B;
+  int j;
+  j = nbr_of_lines / B;
+  double F[j];
+  for (int i=0; i<j; i++){
+    F[i] = 0;
+  }
+
+  for (int i=0; i<j; i++){
+    for (int k=0; k<B; k++){
+      F[i] += data[k+i*B]/(double)B;
+    }
+  }
+  double variance_F = 0;
+  double mean_F = 0;
+  for (int i=0; i<j; i++){
+    variance_F += F[i]*F[i]/(double)j;
+    mean_F += F[i]/(double)j;
+  }
+  variance_F = variance_F - mean_F*mean_F;
+
+  double variance_f = 0;
+  for (int i=0; i<nbr_of_lines; i++){
+    variance_f += data[i]*data[i];
+  }
+  variance_f = variance_f / (double)nbr_of_lines;
+  //printf("var f=%f and var F=%f mean_F=%f\n", variance_f, variance_F, mean_F);
+  good_guess_B = (double)B * variance_F / variance_f;
+  return good_guess_B;
+}
+
+
+
+void center_data(double*data, int nbr_of_lines){
+  double main_mean=0;
+  for (int i=0; i<nbr_of_lines; i++){
+    main_mean += data[i];
+  }
+  main_mean = main_mean / (double)nbr_of_lines;
+  for (int i=0; i<nbr_of_lines; i++){
+    data[i]=data[i]-main_mean;
+  }
+ 
+
 }

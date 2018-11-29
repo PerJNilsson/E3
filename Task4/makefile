@@ -16,10 +16,10 @@ $(PROGRAM): $(OBJECTS)
 	$(CC) -o $@ E3.c $(CFLAGS) $(LIBS)
 
 clean:
-	rm -f *.o; rm -rf main;
+	rm -f *.o; rm -rf E3; rm -rf *.dat;
 	touch *.c
 
 go :
-	@./E3;
+	@./E3; python plot.py; python plot_block.py;
 
 
