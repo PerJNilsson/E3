@@ -38,7 +38,7 @@ int main(){
   int k= 400;
   int B;
   int step = 10;
-  int start = 1; int end = 20000/step;
+  int end = 20000/step;
   int length_array = end;
   double s_block[length_array];
 
@@ -78,7 +78,6 @@ int auto_corr_fun(double* data, int nbr_of_lines, int k){
     phi[i]=0;
   }
   double mean_squared = 0;
-  //double mean_i = 0;
   FILE * valuessave;
   for (int i = 0; i<k; i++) {
     for (int j=0; j<nbr_of_lines-i; j++){
@@ -127,7 +126,6 @@ double block_average(double* data, int nbr_of_lines, int B){
     variance_f += data[i]*data[i];
   }
   variance_f = variance_f / (double)nbr_of_lines;
-  //printf("var f=%f and var F=%f mean_F=%f\n", variance_f, variance_F, mean_F);
   good_guess_B = (double)B * variance_F / variance_f;
   return good_guess_B;
 }
