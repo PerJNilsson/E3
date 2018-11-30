@@ -38,8 +38,8 @@ int main(){
   int k= 400;
   int B;
   int step = 10;
-  int end = 20000/step;
-  int length_array = end;
+  int end = 15000;
+  int length_array = end / step;
   double s_block[length_array];
 
   for (int i=0; i<length_array; i++){
@@ -48,15 +48,17 @@ int main(){
   center_data(data, nbr_of_lines);
   values_block = fopen("block_value.dat", "w");
 
-  for (B = 1; B<end; B++){
-    s_block[B-1] = block_average(data, nbr_of_lines, B*10);
-    fprintf(values_block, "%d \t %f\n", B*10, s_block[B-1]);
+  for (B = 1; B<length_array+1; B++){
+    s_block[B-1] = block_average(data, nbr_of_lines, B*step);
+    fprintf(values_block, "%d \t %f\n", B*step, s_block[B-1]);
   }
   fclose(values_block);
 
   double s_block_avg_avg = 0;
-  for (int i=1000; i<length_array; i++){
-    s_block_avg_avg += s_block[i] / (double)(length_array-1000);
+  int start_avg = length_array/4;
+  printf("%d\n", start_avg);
+  for (int i=start_avg; i<length_array; i++){
+    s_block_avg_avg += s_block[i] / (double)(length_array-start_avg);
   }
 
   s_corr = auto_corr_fun(data,nbr_of_lines, k);

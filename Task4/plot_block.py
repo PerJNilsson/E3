@@ -4,6 +4,7 @@
 # imports
 import matplotlib.pylab as plt
 import numpy as np
+import math
 
 # input file
 filename = 'block_value.dat'
@@ -16,8 +17,9 @@ plt.figure(figsize=(8,6))
 
 
 sum = 0
-for i in range(1000, len(data[:,1])):
-    sum = sum + data[i,1] / (len(data[:,1])-1000)
+start_avg = int(len(data[:,1]) / 4); 
+for i in range(start_avg, len(data[:,1])):
+    sum = sum + data[i,1] / (len(data[:,1])-start_avg)
 g = float("{0:.2f}".format(sum))
 sum2 = []
 for i in range(0, len(data[:,0])):

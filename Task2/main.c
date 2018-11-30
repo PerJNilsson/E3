@@ -34,9 +34,9 @@ int main() {
     mean_value = mean_value / (double)(N[i]);
     variance = variance / (double) N[i] - mean_value*mean_value;
 
-    value_of_integral = mean_value + sqrt(variance/((double)N[i]));
-    error = sqrt((value_of_integral-(1.0/6.0))*(value_of_integral-(1.0/6.0)))/(1.0/6.0);
-    printf("N=%08d | I=%f | error=%f | variance=%f\n",N[i], value_of_integral, error, variance);
+    value_of_integral = mean_value;// + sqrt(variance/((double)N[i]));
+    //error = sqrt((value_of_integral-(1.0/6.0))*(value_of_integral-(1.0/6.0)))/(1.0/6.0);
+    printf("N=%08d | I=%f | sigma_f=%f | sigma_I=%f\n",N[i], value_of_integral, variance, variance/sqrt((double)N[i]));
   }
   return 0;
   }
